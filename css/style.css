@@ -1,0 +1,131 @@
+@charset "utf-8";
+/* CSS Document */
+
+.navi_head{
+    width:55%;
+    margin-left: auto;
+    margin-right: auto;
+    height:50px;
+    background-color:#459df5;
+}
+.navi_body{
+    overflow:hidden;
+    height:50px;
+}
+/*.navi_body:hover{
+    height:300px;
+}
+*/
+.navi_head>div>span{
+    width:150px;
+    text-align:center;
+    height:300px;
+    display:inline-block;
+    font-weight:bold;
+    color:#FFF;
+    font-size:14px;
+    vertical-align:top;
+}
+
+.navi_head>div>span>p a{
+    color:#FFF;
+    text-decoration:none;
+}
+.navi_head>div>span>p a:hover{
+    color:#FFF;
+    text-decoration:underline;
+}
+
+.navi_title{
+    font-size:16px;
+    line-height:50px;
+    margin-top:0;
+}
+
+.navi_head>div>span:hover{
+    background:rgba(100,100,100,0.2);
+}
+
+
+.content-main {
+min-height: 540px;
+background: #d2d1d0;
+height: 100%;
+min-height: 250px;
+line-height: 18px;
+padding: 20px 0 30px;
+position: relative;
+}
+#homepage {
+background-color: #d2d1d0;
+color: #434343;
+font-family: Tahoma,Geneva,sans-serif;
+font-size: 13px;
+margin: 0 auto;
+text-align: left;
+}
+
+.title {
+background-color: #d2d1d0;
+
+padding: 10px 0;
+height:130px;
+}
+
+.header-secondary__search {
+float: right;
+padding-top: 2px;
+width: 190px;
+}
+
+.container {
+margin: 0 auto;
+margin-top:0px;
+width: 55%;
+}
+
+div.shadowed {
+border: 1px solid #bbb;
+}
+
+div.shadowed div.inner-boundary {
+margin: -2px 0px 0px -2px;
+border: 1px solid #bbb;
+background-color: #f4f4f4;
+}
+
+span {
+    border: 0 none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;;
+    font-style: inherit;
+    font-weight: inherit;
+    margin: 0;
+    outline: 0 none;
+    padding: 0;
+    vertical-align: baseline;
+}
+
+#weekly-features {
+margin-top: 20px;
+float: left;
+width:482px;
+min-height:150px;
+}
+#free-file {
+margin-top: 20px;
+float: right;
+width: 482px;
+}
+#weekly-features .inner-border {
+padding: 20px;
+min-height:150px;
+}
+#free-file .inner-border {
+min-height:150px;
+padding: 20px;
+}
+#home-panel .inner-border {
+padding: 20px;
+min-height:150px;
+}

@@ -1,0 +1,168 @@
+@charset "utf-8";
+/* CSS Document */
+.navi_head{
+    width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 50px;
+    background-color: #00518e;
+}
+.navi_body{
+    /*overflow:hidden;*/
+    height:50px;
+}
+/*.navi_body:hover{
+    height:300px;
+}*/
+.navi_head>div>span{
+    width:187px;
+    text-align:center;
+    height:50px;
+    display:inline-block;
+    font-weight:bold;
+    color:#FFF;
+    font-size:14px;
+    vertical-align:top;
+	position: relative;
+}
+
+.navi_head>div>span>p a{
+    color:#FFF;
+    text-decoration:none;
+}
+.navi_head>div>span>p a:hover{
+    color:#FFF;
+    text-decoration:underline;
+}
+
+.navi_title{
+    font-size:16px;
+    line-height:50px;
+    margin-top:0;
+}
+
+.navi_head>div>span:hover{
+    background:rgba(100,100,100,0.2);
+}
+.content-main {
+min-height: 540px;
+background: #d2d1d0;
+height: 100%;
+min-height: 250px;
+line-height: 18px;
+padding: 20px 0 30px;
+position: relative;
+}
+#homepage {
+background-color: #d2d1d0;
+color: #434343;
+font-family: Tahoma,Geneva,sans-serif;
+font-size: 13px;
+margin: 0 auto;
+text-align: left;
+}
+
+.title {
+height:170px;
+}
+
+.header-secondary__search {
+float: right;
+padding-top: 2px;
+width: 190px;
+}
+
+.container {
+margin: 0 auto;
+margin-top:30px;
+width: 980px;
+}
+
+div.shadowed {
+border: 1px solid #bbb;
+}
+
+div.shadowed div.inner-boundary {
+margin: -2px 0px 0px -2px;
+border: 1px solid #bbb;
+background-color: #f4f4f4;
+background-repeat: repeat-x;
+}
+
+span {
+    border: 0 none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;;
+    font-style: inherit;
+    font-weight: inherit;
+    margin: 0;
+    outline: 0 none;
+    padding: 0;
+    vertical-align: baseline;
+}
+
+#weekly-features {
+margin-top: 20px;
+float: left;
+width:482px;
+min-height:150px;
+}
+#free-file {
+margin-top: 20px;
+float: right;
+width: 482px;
+}
+#home-panel .inner-border p{
+margin-bottom: 10px;
+}
+#free-file .inner-border {
+min-height:150px;
+padding: 20px;
+}
+#home-panel .inner-border {
+padding: 20px;
+min-height:150px;
+line-height:20pt;
+}
+.profile{
+width: 157px;
+height: 215px;
+}
+.carousel-indicators .active {
+  background-color: #00518e;
+}
+.arrow_down {
+	position: absolute;
+    bottom: -10px;
+    left: 82px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid #00518e;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+	display: none;
+}
+.active .arrow_down {
+	display: block;
+}
+.carousel {
+    margin-top: -14px;
+}
+.author-name{
+    font-style: inherit;
+}
+.p-title{
+    font-weight: bold;
+}
+.p-journal {
+    font-style: italic;
+}
+.p-file{
+
+}
+.t-title{
+    color: #0000FF;
+    word-spacing: 10px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
