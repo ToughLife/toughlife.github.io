@@ -125,8 +125,10 @@ min-height:150px;
 line-height:20pt;
 }
 .profile{
-width: 157px;
-height: 215px;
+/* width: 157px;
+height: 215px; */
+width: 85%;
+height: 85%;
 }
 .carousel-indicators .active {
   background-color: #00518e;
