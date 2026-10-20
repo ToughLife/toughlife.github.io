@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN" style="font-size: 25.6px;">
+<html lang="zh-CN" style="font-size: 24px;">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>图像处理 - 天津大学智能课程知识图谱平台</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     /* Zhihuishu & Tianjin University Academic Custom Styles */
     :root {
@@ -15,7 +16,7 @@
       --border: rgba(203, 213, 225, 0.45); /* 明显变浅、柔和雅致的边框色 */
     }
     html {
-      font-size: 25.6px; /* 1.6x 默认放大比例 */
+      font-size: 24px; 
     }
     /* 全局边框调浅 */
     .border-\[var\(--border\)\], [class*="border-\[var\(--border\)\]"] {
@@ -184,7 +185,7 @@
   </section>
 
   <!-- Sticky Tabs Navigation Bar (上下边框严格限制在 max-w-[1700px] 容器内，不跨整屏) -->
-  <nav class="sticky top-16 z-40 bg-[var(--card)]/95 backdrop-blur-md shadow-sm">
+  <nav class="sticky top-0 z-40 bg-[var(--card)]/95 backdrop-blur-md shadow-sm">
     <!-- 上方与下方的横线均在此 div 内 (border-t 与 border-b)，宽度同内容区对齐，不再跨满全屏 -->
     <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 border-t border-b border-[var(--border)]">
       <div class="flex items-center space-x-1 sm:space-x-3 overflow-x-auto custom-scrollbar py-2" id="nav-tabs">
@@ -262,12 +263,12 @@
         </div>
       </div>
 
-      <!-- VIEW A: INTERACTIVE VISUAL TOPOLOGY GRAPH (CANVAS) -->
+      <!-- VIEW A: INTERACTIVE VISUAL TOPOLOGY GRAPH (D3.JS) -->
       <div id="kg-canvas-container" class="hidden bg-[var(--card)] p-4 rounded-xl border border-[var(--border)] relative overflow-hidden">
         <div class="flex items-center justify-between mb-3 text-xs">
           <div class="flex items-center space-x-3">
-            <span class="font-bold text-[var(--foreground)]">知识关联拓扑网络 (Canvas 交互仿真)</span>
-            <span class="text-[var(--muted-foreground)]">可缩放平移、点击节点高亮关联</span>
+            <span class="font-bold text-[var(--foreground)]">知识关联拓扑网络</span>
+            <span class="text-[var(--muted-foreground)]">支持滚轮缩放、拖拽节点物理回弹、悬停高亮关联路径</span>
           </div>
           <div class="flex items-center space-x-4 text-xs">
             <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#005bac]"></span><span>图像处理基础 (8课时)</span></span>
@@ -275,12 +276,12 @@
             <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span><span>计算机视觉前沿 (16课时)</span></span>
           </div>
         </div>
-        <div class="relative w-full h-[520px] bg-slate-950 rounded-lg overflow-hidden border border-[var(--border)]">
-          <canvas id="kgCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+        <div class="relative w-full h-[540px] bg-slate-950 rounded-lg overflow-hidden border border-[var(--border)]" id="kg-graph-wrapper">
+          <div id="kgD3Container" class="w-full h-full select-none"></div>
           <div class="absolute bottom-3 right-3 flex items-center space-x-2 bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-lg text-xs text-slate-300 border border-slate-700">
-            <button onclick="resetKgCanvas()" class="hover:text-white font-medium">重置视角</button>
+            <button onclick="resetKgCanvas()" class="hover:text-white font-medium">重置视角与力场</button>
             <span>|</span>
-            <span>拖拽探索节点</span>
+            <span>滚轮缩放 · 自由拖拽</span>
           </div>
         </div>
       </div>
@@ -610,7 +611,7 @@
             <span>20 节精品聚焦微课 (15 - 20 分钟/节)</span>
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center space-x-1">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>正在录播室制作中 (预计2026春上线)</span>
+              <span>正在制作 (预计2026春上线)</span>
             </span>
           </h2>
           <p class="text-xs text-[var(--muted-foreground)] mt-0.5">遵循微型化、聚焦化认知规律，突破传统课程抽象难点，打造高品质短视频教学资源</p>
@@ -655,8 +656,11 @@
         <button onclick="showSimSubTab('sim-sub-opt')" id="btn-sub-opt" class="sim-sub-tab px-3.5 py-1.5 rounded-lg font-medium bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
           <span>沙盒 3: 梯度下降曲面优化</span>
         </button>
+        <button onclick="showSimSubTab('sim-sub-cam')" id="btn-sub-cam" class="sim-sub-tab px-3.5 py-1.5 rounded-lg font-medium bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+          <span>沙盒 4: CNN特征可视化与Grad-CAM</span>
+        </button>
         <button onclick="showSimSubTab('sim-sub-gallery')" id="btn-sub-gallery" class="sim-sub-tab px-3.5 py-1.5 rounded-lg font-medium bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-          <span>浏览其余 5 大前沿模拟器</span>
+          <span>浏览其余 4 大前沿模拟器</span>
         </button>
       </div>
 
@@ -892,23 +896,213 @@
         </div>
       </div>
 
-      <!-- GALLERY FOR REMAINING 5 SIMULATORS (4, 5, 6, 7, 8) -->
+      <!-- SANDBOX 4: CNN FEATURE VISUALIZATION & GRAD-CAM (LIVE INTERACTIVE) -->
+      <div id="sim-sub-cam" class="sim-panel hidden bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 shadow-sm space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[var(--border)] gap-2">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-[var(--foreground)]">动画 4：CNN 逐层特征可视化与 Grad-CAM 类激活映射探索</h3>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">观察深度网络从低级纹理到高级语义的特征抽取跃迁；调节目标类别与透明度，透视 Grad-CAM 如何通过决策梯度定位关键视觉判别区域</p>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="text-[var(--muted-foreground)]">测试图形样本:</span>
+            <button onclick="setCamSample('dog')" id="btn-cam-dog" class="cam-sample-btn px-2.5 py-1 rounded bg-[#005bac] text-white font-medium shadow-sm">🐕 金毛犬 (Dog)</button>
+            <button onclick="setCamSample('cat')" id="btn-cam-cat" class="cam-sample-btn px-2.5 py-1 rounded bg-[var(--content)] hover:bg-[#005bac]/10 border border-[var(--border)]">🐱 橘猫 (Cat)</button>
+            <button onclick="setCamSample('car')" id="btn-cam-car" class="cam-sample-btn px-2.5 py-1 rounded bg-[var(--content)] hover:bg-[#005bac]/10 border border-[var(--border)]">🏎️ 轿跑车 (Car)</button>
+            <button onclick="setCamSample('digit8')" id="btn-cam-digit8" class="cam-sample-btn px-2.5 py-1 rounded bg-[var(--content)] hover:bg-[#005bac]/10 border border-[var(--border)]">🔢 数字 8 (MNIST)</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Left: Input & Multi-stage Feature Maps (8 cols) -->
+          <div class="lg:col-span-8 space-y-5">
+            <!-- Stage 1 & Stage 2 -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-[var(--content)]/50 p-4 rounded-xl border border-[var(--border)]">
+              <!-- Original Input -->
+              <div class="md:col-span-4 text-center space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-semibold px-1">
+                  <span class="text-[var(--foreground)]">① 输入图像</span>
+                  <span class="text-xs font-mono text-[var(--muted-foreground)]">220×220 RGB</span>
+                </div>
+                <div class="inline-block border-2 border-[var(--border)] rounded-lg overflow-hidden bg-black shadow-inner">
+                  <canvas id="camInputCanvas" width="180" height="180" class="block"></canvas>
+                </div>
+                <div class="text-[11px] text-[var(--muted-foreground)]" id="cam-input-caption">真实输入图像像素矩阵</div>
+              </div>
+
+              <!-- Shallow Features Conv1 -->
+              <div class="md:col-span-8 space-y-2">
+                <div class="flex items-center justify-between text-xs font-semibold px-1">
+                  <span class="text-[#005bac] dark:text-blue-400">② 浅层卷积层特征 (Conv 1 · 局部边缘与颜色对比)</span>
+                  <span class="text-xs text-[var(--muted-foreground)]">高分辨率 / 局域感受野</span>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                  <div class="bg-[var(--card)] p-2 rounded-lg border border-[var(--border)] text-center space-y-1">
+                    <canvas id="conv1Canvas0" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                    <div class="text-[10px] font-mono text-[var(--muted-foreground)]">水平梯度核</div>
+                  </div>
+                  <div class="bg-[var(--card)] p-2 rounded-lg border border-[var(--border)] text-center space-y-1">
+                    <canvas id="conv1Canvas1" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                    <div class="text-[10px] font-mono text-[var(--muted-foreground)]">垂直梯度核</div>
+                  </div>
+                  <div class="bg-[var(--card)] p-2 rounded-lg border border-[var(--border)] text-center space-y-1">
+                    <canvas id="conv1Canvas2" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                    <div class="text-[10px] font-mono text-[var(--muted-foreground)]">角点/纹理核</div>
+                  </div>
+                  <div class="bg-[var(--card)] p-2 rounded-lg border border-[var(--border)] text-center space-y-1">
+                    <canvas id="conv1Canvas3" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                    <div class="text-[10px] font-mono text-[var(--muted-foreground)]">高频拉普拉斯</div>
+                  </div>
+                </div>
+                <div class="text-[11px] text-[var(--muted-foreground)] leading-tight">
+                  <strong>浅层特征特点：</strong> 保持精细空间几何分辨率，神经元响应集中在基础轮廓、方向条纹与色彩突变边界。
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 3: Deep Feature Maps Conv5 / Bottleneck -->
+            <div class="bg-[var(--content)]/50 p-4 rounded-xl border border-[var(--border)] space-y-2">
+              <div class="flex items-center justify-between text-xs font-semibold px-1">
+                <span class="text-indigo-600 dark:text-indigo-400">③ 深层高维语义特征 (Conv 5 / Bottleneck · 关键部件响应)</span>
+                <span class="text-xs font-mono text-[var(--muted-foreground)]">全局大感受野 · 语义丰富</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-[var(--card)] p-2.5 rounded-lg border border-[var(--border)] text-center space-y-1.5">
+                  <div class="flex justify-between items-center text-[10px] text-[var(--muted-foreground)]">
+                    <span>通道 #1</span>
+                    <span id="cam-weight-tag-0" class="font-mono text-emerald-600 font-bold">+0.85</span>
+                  </div>
+                  <canvas id="conv5Canvas0" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                  <div class="text-[11px] font-medium text-[var(--foreground)]" id="conv5-name-0">面部/头部特征</div>
+                </div>
+                <div class="bg-[var(--card)] p-2.5 rounded-lg border border-[var(--border)] text-center space-y-1.5">
+                  <div class="flex justify-between items-center text-[10px] text-[var(--muted-foreground)]">
+                    <span>通道 #2</span>
+                    <span id="cam-weight-tag-1" class="font-mono text-emerald-600 font-bold">+0.72</span>
+                  </div>
+                  <canvas id="conv5Canvas1" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                  <div class="text-[11px] font-medium text-[var(--foreground)]" id="conv5-name-1">耳廓/五官特征</div>
+                </div>
+                <div class="bg-[var(--card)] p-2.5 rounded-lg border border-[var(--border)] text-center space-y-1.5">
+                  <div class="flex justify-between items-center text-[10px] text-[var(--muted-foreground)]">
+                    <span>通道 #3</span>
+                    <span id="cam-weight-tag-2" class="font-mono text-blue-600 font-bold">+0.30</span>
+                  </div>
+                  <canvas id="conv5Canvas2" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                  <div class="text-[11px] font-medium text-[var(--foreground)]" id="conv5-name-2">躯干整体轮廓</div>
+                </div>
+                <div class="bg-[var(--card)] p-2.5 rounded-lg border border-[var(--border)] text-center space-y-1.5">
+                  <div class="flex justify-between items-center text-[10px] text-[var(--muted-foreground)]">
+                    <span>通道 #4</span>
+                    <span id="cam-weight-tag-3" class="font-mono text-slate-400 font-bold">-0.24</span>
+                  </div>
+                  <canvas id="conv5Canvas3" width="80" height="80" class="w-full rounded bg-black block"></canvas>
+                  <div class="text-[11px] font-medium text-[var(--foreground)]" id="conv5-name-3">背景杂散响应</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Grad-CAM Result & Interactive Controls (4 cols) -->
+          <div class="lg:col-span-4 space-y-4">
+            <!-- Overlay Canvas Card -->
+            <div class="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)] shadow-sm text-center space-y-3">
+              <div class="flex items-center justify-between text-xs font-semibold px-1">
+                <span class="text-rose-600 dark:text-rose-400 font-bold">④ Grad-CAM 激活热力图叠加</span>
+                <span id="cam-target-badge" class="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">目标: 金毛犬</span>
+              </div>
+              <div class="relative inline-block border-2 border-rose-500/40 rounded-lg overflow-hidden bg-black shadow-lg">
+                <canvas id="camOverlayCanvas" width="220" height="220" class="block"></canvas>
+                <!-- Colorbar Legend overlay at bottom -->
+                <div class="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur-sm rounded px-2 py-1 flex items-center justify-between text-[10px] text-white">
+                  <span>低激活 (0.0)</span>
+                  <div class="h-2 w-24 rounded mx-1 bg-gradient-to-r from-blue-600 via-green-500 via-yellow-400 to-red-600"></div>
+                  <span>高热点 (1.0)</span>
+                </div>
+              </div>
+
+              <!-- Prediction Probabilities -->
+              <div class="space-y-1.5 text-xs text-left pt-1">
+                <div class="flex justify-between text-[11px] text-[var(--muted-foreground)]">
+                  <span>模型 Top 预测置信度 (Softmax):</span>
+                </div>
+                <div class="space-y-1">
+                  <div>
+                    <div class="flex justify-between text-[11px] font-medium">
+                      <span id="cam-pred-name-1">金毛寻回犬 (Golden Retriever)</span>
+                      <span id="cam-pred-val-1" class="font-mono text-[#005bac] font-bold">94.2%</span>
+                    </div>
+                    <div class="w-full bg-[var(--content)] h-1.5 rounded-full overflow-hidden">
+                      <div id="cam-pred-bar-1" class="bg-[#005bac] h-1.5 rounded-full" style="width: 94.2%"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[11px] text-[var(--muted-foreground)]">
+                      <span id="cam-pred-name-2">短毛家猫 (Tabby Cat)</span>
+                      <span id="cam-pred-val-2" class="font-mono">4.1%</span>
+                    </div>
+                    <div class="w-full bg-[var(--content)] h-1.5 rounded-full overflow-hidden">
+                      <div id="cam-pred-bar-2" class="bg-slate-400 h-1.5 rounded-full" style="width: 4.1%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="bg-[var(--content)]/60 p-4 rounded-xl border border-[var(--border)] space-y-3.5 text-xs">
+              <!-- Select Target Class for Grad-CAM -->
+              <div class="space-y-1.5">
+                <label class="font-semibold text-[var(--foreground)] block">指定反向传播解释类别 (Target Class c):</label>
+                <select id="cam-target-class" onchange="updateCamDisplay()" class="w-full bg-[var(--card)] border border-[var(--border)] rounded-lg p-2 text-xs text-[var(--foreground)]">
+                  <option value="target_true">当前真实类别 (正向判别特征)</option>
+                  <option value="target_alt">干扰混淆类别 (观察负向特征差异)</option>
+                  <option value="target_bg">背景上下文类别 (观察非显著区梯度)</option>
+                </select>
+              </div>
+
+              <!-- Overlay Alpha Slider -->
+              <div class="space-y-1">
+                <div class="flex justify-between">
+                  <span class="font-semibold text-[var(--foreground)]">热力图透明度 (Heatmap Alpha):</span>
+                  <span id="cam-alpha-val" class="font-mono text-[#005bac] font-bold">60%</span>
+                </div>
+                <input type="range" id="cam-alpha-slider" min="0" max="100" value="60" oninput="updateCamAlpha(this.value)" class="w-full h-2 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#005bac]">
+                <div class="flex justify-between text-[10px] text-[var(--muted-foreground)]">
+                  <span>纯原图 (0%)</span>
+                  <span>适度融合</span>
+                  <span>纯热力图 (100%)</span>
+                </div>
+              </div>
+
+              <!-- Mathematical Formula Callout -->
+              <div class="bg-[var(--card)] p-3 rounded-lg border border-[var(--border)] text-[11px] space-y-1 text-[var(--muted-foreground)]">
+                <div class="font-bold text-[var(--foreground)] text-xs text-[#005bac]">Grad-CAM 核心数学算式:</div>
+                <div class="font-mono text-[10px] bg-[var(--content)] p-1 rounded">1. 权重: α_k^c = (1/Z) ∑_i ∑_j (∂y^c / ∂A_ij^k)</div>
+                <div class="font-mono text-[10px] bg-[var(--content)] p-1 rounded">2. 热力图: L^c = ReLU( ∑_k α_k^c · A^k )</div>
+                <p class="leading-tight pt-0.5">施加 ReLU 的目的是只保留对预测类别有<strong>正向促进作用</strong>的特征通道，过滤负相关噪声。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GALLERY FOR REMAINING 4 SIMULATORS (5, 6, 7, 8) -->
       <div id="sim-sub-gallery" class="sim-panel hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Sim 4 -->
-        <div class="bg-[var(--card)] p-5 rounded-xl border border-[var(--border)] space-y-3 hover:border-[#005bac]/50 transition">
+        <!-- Sim 4 link card -->
+        <!-- <div class="bg-[var(--card)] p-5 rounded-xl border border-[var(--border)] space-y-3 hover:border-[#005bac]/50 transition">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded">动画 4</span>
-            <span class="text-xs text-[var(--muted-foreground)]">深度特征可视化</span>
+            <span class="text-xs text-[#005bac] font-medium">已上线 (沙盒 4)</span>
           </div>
           <h4 class="text-xs sm:text-sm font-bold text-[var(--foreground)]">CNN 特征可视化与 Grad-CAM 探索</h4>
           <p class="text-xs text-[var(--muted-foreground)] leading-relaxed">
-            打开神经网络黑箱。上传任意测试图，逐层观察预训练网络（如 LeNet/VGG/ResNet）从浅层边缘、方向纹理到深层目标语义构件的特征激活图，利用 CAM 定位分类决策敏感区域。
+            打开神经网络黑箱。逐层观察预训练网络从浅层边缘、方向纹理到深层目标语义构件的特征激活图，利用 CAM 定位分类决策敏感区域。
           </p>
           <div class="pt-2 flex justify-between items-center text-xs">
-            <span class="text-[#005bac] font-medium">支持特征热力图点击</span>
-            <button onclick="alert('已就绪：支持通过类激活映射技术定位输入图像特征区域！')" class="px-3 py-1 rounded bg-[#005bac] text-white font-medium hover:bg-[#004280] transition">启动演示</button>
+            <span class="text-[#005bac] font-medium">已支持多通道交互</span>
+            <button onclick="showSimSubTab('sim-sub-cam')" class="px-3 py-1 rounded bg-[#005bac] text-white font-medium hover:bg-[#004280] transition">立即进入沙盒 4</button>
           </div>
-        </div>
+        </div> -->
 
         <!-- Sim 5 -->
         <div class="bg-[var(--card)] p-5 rounded-xl border border-[var(--border)] space-y-3 hover:border-[#005bac]/50 transition">
@@ -922,7 +1116,7 @@
           </p>
           <div class="pt-2 flex justify-between items-center text-xs">
             <span class="text-indigo-600 font-medium">支持 QKV 投影权重调节</span>
-            <button onclick="alert('已载入 Self-Attention 交互式计算图模块！')" class="px-3 py-1 rounded bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition">启动演示</button>
+            <button onclick="alert('正在制作中...')" class="px-3 py-1 rounded bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition">启动演示</button>
           </div>
         </div>
 
@@ -938,7 +1132,7 @@
           </p>
           <div class="pt-2 flex justify-between items-center text-xs">
             <span class="text-pink-600 font-medium">动态能力条博弈分析</span>
-            <button onclick="alert('已进入 GAN 对抗训练模拟沙盒！')" class="px-3 py-1 rounded bg-pink-600 text-white font-medium hover:bg-pink-700 transition">启动演示</button>
+            <button onclick="alert('正在制作中...')" class="px-3 py-1 rounded bg-pink-600 text-white font-medium hover:bg-pink-700 transition">启动演示</button>
           </div>
         </div>
 
@@ -954,7 +1148,7 @@
           </p>
           <div class="pt-2 flex justify-between items-center text-xs">
             <span class="text-[#005bac] font-medium">时间轴 T 步自由擦除查看</span>
-            <button onclick="alert('已就绪：支持从纯噪声到手写体/风景图的去噪步进！')" class="px-3 py-1 rounded bg-[#005bac] text-white font-medium hover:bg-[#004280] transition">启动演示</button>
+            <button onclick="alert('正在制作中...')" class="px-3 py-1 rounded bg-[#005bac] text-white font-medium hover:bg-[#004280] transition">启动演示</button>
           </div>
         </div>
 
@@ -970,7 +1164,7 @@
           </p>
           <div class="pt-2 flex justify-between items-center text-xs">
             <span class="text-amber-600 font-medium">包含 NMS 非极大值抑制过程</span>
-            <button onclick="alert('已开启目标检测双范式基准对比仪！')" class="px-3 py-1 rounded bg-amber-600 text-white font-medium hover:bg-amber-700 transition">启动演示</button>
+            <button onclick="alert('正在制作中...')" class="px-3 py-1 rounded bg-amber-600 text-white font-medium hover:bg-amber-700 transition">启动演示</button>
           </div>
         </div>
       </div>
@@ -1476,7 +1670,7 @@
     }
 
     function goToAssignment(hwId) {
-      switchTab('tab-assignments');
+      switchTab('tab-coding');
       filterAssignments('all');
       setTimeout(() => {
         const card = document.getElementById('assignment-card-' + hwId);
@@ -1602,72 +1796,192 @@
       [7, 13], [12, 13]
     ];
 
-    let kgCanvas, kgCtx;
+    let kgSimulation, kgSvg, kgZoomBehavior;
     function initKgCanvas() {
-      kgCanvas = document.getElementById('kgCanvas');
-      if (!kgCanvas) return;
-      const rect = kgCanvas.parentElement.getBoundingClientRect();
-      kgCanvas.width = rect.width;
-      kgCanvas.height = rect.height;
-      kgCtx = kgCanvas.getContext('2d');
-      drawKg();
-    }
+      const container = document.getElementById('kgD3Container');
+      if (!container || typeof d3 === 'undefined') return;
 
-    function drawKg() {
-      if (!kgCtx || !kgCanvas) return;
-      kgCtx.clearRect(0, 0, kgCanvas.width, kgCanvas.height);
+      d3.select('#kgD3Container').selectAll('*').remove();
 
-      // Draw Edges
-      kgEdges.forEach(edge => {
-        const u = kgNodes.find(n => n.id === edge[0]);
-        const v = kgNodes.find(n => n.id === edge[1]);
-        if (!u || !v) return;
+      const rect = container.getBoundingClientRect();
+      const W = rect.width > 50 ? rect.width : 1020;
+      const H = rect.height > 50 ? rect.height : 540;
 
-        const sx = (u.x / 1020) * kgCanvas.width;
-        const sy = (u.y / 460) * kgCanvas.height;
-        const tx = (v.x / 1020) * kgCanvas.width;
-        const ty = (v.y / 460) * kgCanvas.height;
+      kgSvg = d3.select('#kgD3Container')
+        .append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${W} ${H}`)
+        .style('display', 'block');
 
-        kgCtx.beginPath();
-        kgCtx.moveTo(sx, sy);
-        kgCtx.lineTo(tx, ty);
-        kgCtx.strokeStyle = 'rgba(100, 116, 139, 0.35)';
-        kgCtx.lineWidth = 2.5;
-        kgCtx.stroke();
-      });
+      // Defs for Arrow Marker & Glow Filters
+      const defs = kgSvg.append('defs');
+      defs.append('marker')
+        .attr('id', 'kg-arrow')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 38)
+        .attr('refY', 0)
+        .attr('markerWidth', 7)
+        .attr('markerHeight', 7)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-4.5L9,0L0,4.5')
+        .attr('fill', 'rgba(148, 163, 184, 0.7)');
+
+      // Main Zoom Group
+      const gMain = kgSvg.append('g').attr('class', 'kg-zoom-group');
+
+      // Setup D3 Zoom & Pan
+      kgZoomBehavior = d3.zoom()
+        .scaleExtent([0.5, 3.0])
+        .on('zoom', (event) => {
+          gMain.attr('transform', event.transform);
+        });
+      kgSvg.call(kgZoomBehavior);
+
+      // Clone Data for D3 Simulation
+      const nodesData = kgNodes.map(d => ({
+        ...d,
+        x: (d.x / 1020) * W,
+        y: (d.y / 460) * H,
+        targetX: (d.x / 1020) * W,
+        targetY: (d.y / 460) * H
+      }));
+
+      const linksData = kgEdges.map(e => ({
+        source: e[0],
+        target: e[1]
+      }));
+
+      // Force Simulation
+      kgSimulation = d3.forceSimulation(nodesData)
+        .force('link', d3.forceLink(linksData).id(d => d.id).distance(110))
+        .force('charge', d3.forceManyBody().strength(-380))
+        .force('x', d3.forceX(d => d.targetX).strength(0.5))
+        .force('y', d3.forceY(d => d.targetY).strength(0.5))
+        .force('collide', d3.forceCollide().radius(d => d.r + 16))
+        .alphaDecay(0.035);
+
+      // Draw Links
+      const link = gMain.append('g')
+        .attr('class', 'kg-links')
+        .selectAll('line')
+        .data(linksData)
+        .enter()
+        .append('line')
+        .attr('stroke', 'rgba(148, 163, 184, 0.45)')
+        .attr('stroke-width', 2.2)
+        .attr('stroke-dasharray', 'none')
+        .attr('marker-end', 'url(#kg-arrow)')
+        .style('transition', 'opacity 0.25s, stroke 0.25s');
+
+      // Drag Behaviors
+      const drag = d3.drag()
+        .on('start', (event, d) => {
+          if (!event.active) kgSimulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on('drag', (event, d) => {
+          d.fx = event.x;
+          d.fy = event.y;
+        })
+        .on('end', (event, d) => {
+          if (!event.active) kgSimulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        });
 
       // Draw Nodes
-      kgNodes.forEach(n => {
-        const cx = (n.x / 1020) * kgCanvas.width;
-        const cy = (n.y / 460) * kgCanvas.height;
+      const node = gMain.append('g')
+        .attr('class', 'kg-nodes')
+        .selectAll('g')
+        .data(nodesData)
+        .enter()
+        .append('g')
+        .attr('class', 'kg-node-group cursor-pointer select-none')
+        .call(drag);
 
-        kgCtx.beginPath();
-        kgCtx.arc(cx, cy, n.r + 4, 0, Math.PI * 2);
-        kgCtx.fillStyle = n.col + '33';
-        kgCtx.fill();
+      // Outer Halo Circle
+      node.append('circle')
+        .attr('class', 'node-halo')
+        .attr('r', d => d.r + 6)
+        .attr('fill', d => d.col)
+        .attr('opacity', 0.22);
 
-        kgCtx.beginPath();
-        kgCtx.arc(cx, cy, n.r, 0, Math.PI * 2);
-        kgCtx.fillStyle = n.col;
-        kgCtx.fill();
-        kgCtx.strokeStyle = '#ffffff';
-        kgCtx.lineWidth = 2.5;
-        kgCtx.stroke();
+      // Core Circle
+      node.append('circle')
+        .attr('class', 'node-core')
+        .attr('r', d => d.r)
+        .attr('fill', d => d.col)
+        .attr('stroke', '#ffffff')
+        .attr('stroke-width', 2.5);
 
-        kgCtx.fillStyle = '#ffffff';
-        kgCtx.font = 'bold 13px sans-serif';
-        kgCtx.textAlign = 'center';
-        kgCtx.textBaseline = 'middle';
-        kgCtx.fillText(n.name, cx, cy);
+      // Node Name Title
+      node.append('text')
+        .attr('class', 'node-title')
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('fill', '#ffffff')
+        .attr('font-size', '12.5px')
+        .attr('font-weight', 'bold')
+        .style('pointer-events', 'none')
+        .text(d => d.name);
 
-        kgCtx.fillStyle = '#94a3b8';
-        kgCtx.font = '12px sans-serif';
-        kgCtx.fillText(n.chapter, cx, cy + n.r + 16);
+      // Lecture Subtitle
+      node.append('text')
+        .attr('class', 'node-chapter')
+        .attr('y', d => d.r + 16)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#94a3b8')
+        .attr('font-size', '11px')
+        .style('pointer-events', 'none')
+        .text(d => d.chapter);
+
+      // Hover Highlight Interaction
+      node.on('mouseenter', (event, d) => {
+        const connectedNodeIds = new Set();
+        connectedNodeIds.add(d.id);
+
+        link.style('opacity', l => {
+          const isConnected = l.source.id === d.id || l.target.id === d.id;
+          if (isConnected) {
+            connectedNodeIds.add(l.source.id);
+            connectedNodeIds.add(l.target.id);
+            return 1.0;
+          }
+          return 0.12;
+        }).attr('stroke', l => (l.source.id === d.id || l.target.id === d.id) ? '#38bdf8' : 'rgba(148, 163, 184, 0.45)');
+
+        node.style('opacity', n => connectedNodeIds.has(n.id) ? 1.0 : 0.2);
+        d3.select(event.currentTarget).select('.node-halo').transition().duration(200).attr('r', d.r + 12).attr('opacity', 0.45);
+      });
+
+      node.on('mouseleave', (event, d) => {
+        link.style('opacity', 1.0).attr('stroke', 'rgba(148, 163, 184, 0.45)');
+        node.style('opacity', 1.0);
+        d3.select(event.currentTarget).select('.node-halo').transition().duration(200).attr('r', d.r + 6).attr('opacity', 0.22);
+      });
+
+      // Simulation Tick
+      kgSimulation.on('tick', () => {
+        link
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+
+        node.attr('transform', d => `translate(${d.x},${d.y})`);
       });
     }
 
     function resetKgCanvas() {
-      initKgCanvas();
+      if (kgSvg && kgZoomBehavior) {
+        kgSvg.transition().duration(600).call(kgZoomBehavior.transform, d3.zoomIdentity);
+      }
+      if (kgSimulation) {
+        kgSimulation.alpha(0.6).restart();
+      }
     }
 
     // ==========================================
@@ -1691,6 +2005,7 @@
       if (id === 'sim-sub-conv') initConvolution();
       if (id === 'sim-sub-fft') initFourierCanvas();
       if (id === 'sim-sub-opt') initOptCanvas();
+      if (id === 'sim-sub-cam') initCamSimulator();
     }
 
     function launchSimulator(simId) {
@@ -1698,6 +2013,7 @@
       if (simId === 'sim1') showSimSubTab('sim-sub-conv');
       else if (simId === 'sim2') showSimSubTab('sim-sub-fft');
       else if (simId === 'sim3') showSimSubTab('sim-sub-opt');
+      else if (simId === 'sim4') showSimSubTab('sim-sub-cam');
       else {
         showSimSubTab('sim-sub-gallery');
       }
@@ -2178,6 +2494,605 @@
     }
 
     // ==========================================
+    // 10. CNN FEATURE MAPS & GRAD-CAM SIMULATOR LOGIC
+    // ==========================================
+    let currentCamSample = 'dog';
+    let currentCamAlpha = 0.60;
+    let cachedCamInputData = null; // store 220x220 raw imageData
+    let cachedConv5Maps = []; // 4 feature maps of 14x14
+
+    const camSampleConfigs = {
+      dog: {
+        name: '🐕 金毛犬 (Golden Retriever)',
+        badge: '目标: 金毛寻回犬',
+        top1: { name: '金毛寻回犬 (Golden Retriever)', score: '94.2%', bar: '94.2%' },
+        top2: { name: '短毛家猫 (Tabby Cat)', score: '4.1%', bar: '4.1%' },
+        conv5Names: ['面部与鼻吻特征', '垂耳与眼眶特征', '胸背轮廓骨架', '草地背景噪声'],
+        weights: {
+          target_true: [0.88, 0.74, 0.28, -0.30],
+          target_alt: [-0.42, -0.60, 0.22, 0.50],
+          target_bg: [-0.15, -0.20, -0.35, 0.95]
+        }
+      },
+      cat: {
+        name: '🐱 橘猫 (Tabby Cat)',
+        badge: '目标: 虎斑短毛猫',
+        top1: { name: '虎斑短毛猫 (Tabby Cat)', score: '91.8%', bar: '91.8%' },
+        top2: { name: '柯基犬 (Pembroke Corgi)', score: '5.6%', bar: '5.6%' },
+        conv5Names: ['猫脸五官核心', '竖立尖耳轮廓', '胡须与额头斑纹', '室内背景杂光'],
+        weights: {
+          target_true: [0.82, 0.90, 0.35, -0.22],
+          target_alt: [-0.38, -0.52, 0.18, 0.58],
+          target_bg: [-0.12, -0.16, -0.28, 0.90]
+        }
+      },
+      car: {
+        name: '🏎️ 轿跑车 (Sports Car)',
+        badge: '目标: 轿跑车',
+        top1: { name: '轿跑车 (Sports Car)', score: '96.5%', bar: '96.5%' },
+        top2: { name: '敞篷旅行车 (Wagon)', score: '2.8%', bar: '2.8%' },
+        conv5Names: ['车前脸与进气格栅', '车顶座舱流线', '前后双车轮结构', '公路路面纹理'],
+        weights: {
+          target_true: [0.94, 0.68, 0.86, -0.35],
+          target_alt: [-0.55, -0.32, 0.12, 0.70],
+          target_bg: [-0.20, -0.25, -0.45, 0.98]
+        }
+      },
+      digit8: {
+        name: '🔢 数字 8 (MNIST)',
+        badge: '目标: 数字 8',
+        top1: { name: '手写数字 8 (Class 8)', score: '98.7%', bar: '98.7%' },
+        top2: { name: '手写数字 3 (Class 3)', score: '1.1%', bar: '1.1%' },
+        conv5Names: ['上半闭环拓扑', '下半闭环拓扑', '中间腰部交叉点', '边缘全黑背景'],
+        weights: {
+          target_true: [0.96, 0.92, 0.75, -0.15],
+          target_alt: [0.18, -0.85, 0.40, 0.60],
+          target_bg: [-0.25, -0.35, -0.25, 0.95]
+        }
+      }
+    };
+
+    function initCamSimulator() {
+      setCamSample(currentCamSample);
+    }
+
+    function setCamSample(type) {
+      currentCamSample = type;
+      document.querySelectorAll('.cam-sample-btn').forEach(b => {
+        b.className = 'cam-sample-btn px-2.5 py-1 rounded bg-[var(--content)] hover:bg-[#005bac]/10 border border-[var(--border)] transition';
+      });
+      const activeBtn = document.getElementById('btn-cam-' + type);
+      if (activeBtn) {
+        activeBtn.className = 'cam-sample-btn px-2.5 py-1 rounded bg-[#005bac] text-white font-medium shadow-sm';
+      }
+
+      const cfg = camSampleConfigs[type];
+      if (!cfg) return;
+
+      // Update right predictions
+      document.getElementById('cam-pred-name-1').textContent = cfg.top1.name;
+      document.getElementById('cam-pred-val-1').textContent = cfg.top1.score;
+      document.getElementById('cam-pred-bar-1').style.width = cfg.top1.bar;
+      document.getElementById('cam-pred-name-2').textContent = cfg.top2.name;
+      document.getElementById('cam-pred-val-2').textContent = cfg.top2.score;
+      document.getElementById('cam-pred-bar-2').style.width = cfg.top2.bar;
+      document.getElementById('cam-target-badge').textContent = cfg.badge;
+
+      // Update conv5 channel names
+      for (let i = 0; i < 4; i++) {
+        const nameEl = document.getElementById(`conv5-name-${i}`);
+        if (nameEl) nameEl.textContent = cfg.conv5Names[i];
+      }
+
+      // Draw original sample onto camInputCanvas
+      drawCamInputSample(type);
+
+      // Generate Conv1 shallow maps
+      generateConv1FeatureMaps();
+
+      // Generate Conv5 deep maps
+      generateConv5FeatureMaps(type);
+
+      // Compute and draw Grad-CAM overlay
+      updateCamDisplay();
+    }
+
+    function drawCamInputSample(type) {
+      const cvs = document.getElementById('camInputCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const W = cvs.width, H = cvs.height;
+      ctx.clearRect(0, 0, W, H);
+
+      if (type === 'dog') {
+        // Soft gradient lawn & sky
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+        bgGrad.addColorStop(0, '#7eb6d9');
+        bgGrad.addColorStop(0.5, '#c5e2a5');
+        bgGrad.addColorStop(1, '#689f38');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Dog Body
+        ctx.fillStyle = '#c8924b';
+        ctx.beginPath();
+        ctx.ellipse(90, 155, 60, 40, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Dog Head
+        ctx.fillStyle = '#e8ae5c';
+        ctx.beginPath();
+        ctx.arc(90, 85, 45, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Drooping Ears
+        ctx.fillStyle = '#b77c38';
+        ctx.beginPath();
+        ctx.ellipse(48, 85, 14, 30, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(132, 85, 14, 30, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Muzzle
+        ctx.fillStyle = '#fce4c4';
+        ctx.beginPath();
+        ctx.ellipse(90, 98, 22, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Black Nose
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.ellipse(90, 92, 9, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eyes
+        ctx.fillStyle = '#3a2010';
+        ctx.beginPath();
+        ctx.arc(74, 76, 5, 0, Math.PI * 2);
+        ctx.arc(106, 76, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(72, 74, 1.5, 0, Math.PI * 2);
+        ctx.arc(104, 74, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Collar
+        ctx.strokeStyle = '#c62828';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(90, 126, 26, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+      } else if (type === 'cat') {
+        // Indoor warm mat
+        const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+        bgGrad.addColorStop(0, '#f5ebe0');
+        bgGrad.addColorStop(1, '#d5bdaf');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Body
+        ctx.fillStyle = '#d07a32';
+        ctx.beginPath();
+        ctx.ellipse(90, 150, 50, 36, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Head
+        ctx.fillStyle = '#e78b43';
+        ctx.beginPath();
+        ctx.arc(90, 88, 40, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pointed Ears
+        ctx.fillStyle = '#c76b25';
+        ctx.beginPath();
+        ctx.moveTo(56, 70); ctx.lineTo(46, 32); ctx.lineTo(76, 55); ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(124, 70); ctx.lineTo(134, 32); ctx.lineTo(104, 55); ctx.closePath();
+        ctx.fill();
+
+        // Inner Pink Ears
+        ctx.fillStyle = '#f8bbd0';
+        ctx.beginPath();
+        ctx.moveTo(59, 65); ctx.lineTo(52, 40); ctx.lineTo(72, 56); ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(121, 65); ctx.lineTo(128, 40); ctx.lineTo(108, 56); ctx.closePath();
+        ctx.fill();
+
+        // Cat Eyes (Green Glow)
+        ctx.fillStyle = '#66bb6a';
+        ctx.beginPath();
+        ctx.ellipse(74, 82, 8, 10, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(106, 82, 8, 10, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1b5e20';
+        ctx.beginPath();
+        ctx.ellipse(74, 82, 3, 9, 0, 0, Math.PI * 2);
+        ctx.ellipse(106, 82, 3, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Nose & Whiskers
+        ctx.fillStyle = '#ff80ab';
+        ctx.beginPath();
+        ctx.moveTo(86, 96); ctx.lineTo(94, 96); ctx.lineTo(90, 102); ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(75, 100); ctx.lineTo(40, 96);
+        ctx.moveTo(75, 104); ctx.lineTo(38, 108);
+        ctx.moveTo(105, 100); ctx.lineTo(140, 96);
+        ctx.moveTo(105, 104); ctx.lineTo(142, 108);
+        ctx.stroke();
+      } else if (type === 'car') {
+        // Asphalt Highway & Sky
+        ctx.fillStyle = '#455a64';
+        ctx.fillRect(0, 0, W, 110);
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 110, W, 70);
+
+        // Road dashed line
+        ctx.strokeStyle = '#fbc02d';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([12, 8]);
+        ctx.beginPath();
+        ctx.moveTo(0, 160); ctx.lineTo(W, 160);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Car Body Red
+        ctx.fillStyle = '#e53935';
+        ctx.beginPath();
+        ctx.moveTo(25, 135);
+        ctx.lineTo(40, 115);
+        ctx.lineTo(65, 95);
+        ctx.lineTo(125, 95);
+        ctx.lineTo(155, 115);
+        ctx.lineTo(165, 135);
+        ctx.closePath();
+        ctx.fill();
+
+        // Cabin Glass Dark
+        ctx.fillStyle = '#1a237e';
+        ctx.beginPath();
+        ctx.moveTo(68, 113);
+        ctx.lineTo(78, 99);
+        ctx.lineTo(120, 99);
+        ctx.lineTo(135, 113);
+        ctx.closePath();
+        ctx.fill();
+
+        // Headlight
+        ctx.fillStyle = '#ffeb3b';
+        ctx.beginPath();
+        ctx.arc(162, 126, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Wheels
+        ctx.fillStyle = '#111';
+        ctx.beginPath();
+        ctx.arc(55, 138, 14, 0, Math.PI * 2);
+        ctx.arc(135, 138, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#cfd8dc';
+        ctx.beginPath();
+        ctx.arc(55, 138, 6, 0, Math.PI * 2);
+        ctx.arc(135, 138, 6, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (type === 'digit8') {
+        // Deep Black Canvas
+        ctx.fillStyle = '#05070a';
+        ctx.fillRect(0, 0, W, H);
+
+        // White Glowing Digit 8
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 18;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        // Top loop
+        ctx.arc(90, 65, 28, -Math.PI / 2, Math.PI * 1.5);
+        ctx.stroke();
+        // Bottom loop
+        ctx.beginPath();
+        ctx.arc(90, 118, 34, -Math.PI / 2, Math.PI * 1.5);
+        ctx.stroke();
+      }
+
+      cachedCamInputData = ctx.getImageData(0, 0, W, H);
+    }
+
+    function generateConv1FeatureMaps() {
+      if (!cachedCamInputData) return;
+      const W = cachedCamInputData.width;
+      const H = cachedCamInputData.height;
+      const src = cachedCamInputData.data;
+
+      // Make a grayscale buffer
+      const gray = new Float32Array(W * H);
+      for (let i = 0; i < W * H; i++) {
+        const idx = i * 4;
+        gray[i] = 0.299 * src[idx] + 0.587 * src[idx + 1] + 0.114 * src[idx + 2];
+      }
+
+      // Conv1 kernels
+      // k0: Horizontal Sobel
+      const k0 = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
+      // k1: Vertical Sobel
+      const k1 = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
+      // k2: Corner / Texture
+      const k2 = [[1, -2, 1], [-2, 4, -2], [1, -2, 1]];
+      // k3: Laplacian Edge
+      const k3 = [[0, 1, 0], [1, -4, 1], [0, 1, 0]];
+
+      const kernels = [k0, k1, k2, k3];
+
+      kernels.forEach((k, idx) => {
+        const cvs = document.getElementById(`conv1Canvas${idx}`);
+        if (!cvs) return;
+        const ctx = cvs.getContext('2d');
+        const cW = cvs.width, cH = cvs.height;
+        const imgOut = ctx.createImageData(cW, cH);
+
+        for (let cy = 0; cy < cH; cy++) {
+          for (let cx = 0; cx < cW; cx++) {
+            const sx = Math.floor((cx / cW) * W);
+            const sy = Math.floor((cy / cH) * H);
+
+            let sum = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const ny = Math.max(0, Math.min(H - 1, sy + dy));
+                const nx = Math.max(0, Math.min(W - 1, sx + dx));
+                sum += gray[ny * W + nx] * k[dy + 1][dx + 1];
+              }
+            }
+
+            let v = Math.abs(sum);
+            if (idx === 2) v = Math.max(0, sum * 1.5);
+            v = Math.min(255, Math.max(0, v));
+
+            const outIdx = (cy * cW + cx) * 4;
+            imgOut.data[outIdx] = v * 0.9;
+            imgOut.data[outIdx + 1] = v * 1.0;
+            imgOut.data[outIdx + 2] = v * 1.2;
+            imgOut.data[outIdx + 3] = 255;
+          }
+        }
+        ctx.putImageData(imgOut, 0, 0);
+      });
+    }
+
+    function generateConv5FeatureMaps(type) {
+      cachedConv5Maps = [];
+      const S = 14; // 14x14 feature map dimension
+
+      // 4 distinct semantic maps per sample
+      for (let ch = 0; ch < 4; ch++) {
+        const map = new Float32Array(S * S);
+        for (let y = 0; y < S; y++) {
+          for (let x = 0; x < S; x++) {
+            const nx = x / (S - 1); // 0..1
+            const ny = y / (S - 1); // 0..1
+
+            let act = 0;
+            if (type === 'dog') {
+              if (ch === 0) {
+                // Head/Face: center (0.5, 0.42), radius 0.22
+                const d = Math.hypot(nx - 0.5, ny - 0.42);
+                act = Math.max(0, 1 - d / 0.25);
+              } else if (ch === 1) {
+                // Ears/Muzzle: left ear (0.28, 0.42), right ear (0.72, 0.42)
+                const dL = Math.hypot(nx - 0.28, ny - 0.42);
+                const dR = Math.hypot(nx - 0.72, ny - 0.42);
+                act = Math.max(0, 1 - Math.min(dL, dR) / 0.22);
+              } else if (ch === 2) {
+                // Torso
+                const d = Math.hypot(nx - 0.5, ny - 0.75);
+                act = Math.max(0, 1 - d / 0.35);
+              } else {
+                // Grass/Background: edges
+                act = (ny > 0.85 || ny < 0.2 || nx < 0.15 || nx > 0.85) ? 0.8 : 0.05;
+              }
+            } else if (type === 'cat') {
+              if (ch === 0) {
+                // Face
+                const d = Math.hypot(nx - 0.5, ny - 0.45);
+                act = Math.max(0, 1 - d / 0.24);
+              } else if (ch === 1) {
+                // Pointed Ears
+                const dL = Math.hypot(nx - 0.3, ny - 0.22);
+                const dR = Math.hypot(nx - 0.7, ny - 0.22);
+                act = Math.max(0, 1 - Math.min(dL, dR) / 0.20);
+              } else if (ch === 2) {
+                // Whiskers/Body
+                const d = Math.hypot(nx - 0.5, ny - 0.65);
+                act = Math.max(0, 1 - d / 0.32);
+              } else {
+                // Background
+                act = (nx < 0.2 || nx > 0.8 || ny < 0.15) ? 0.75 : 0.05;
+              }
+            } else if (type === 'car') {
+              if (ch === 0) {
+                // Car front & lights
+                const d = Math.hypot(nx - 0.75, ny - 0.68);
+                act = Math.max(0, 1 - d / 0.26);
+              } else if (ch === 1) {
+                // Cabin & Roof
+                const d = Math.hypot(nx - 0.52, ny - 0.52);
+                act = Math.max(0, 1 - d / 0.26);
+              } else if (ch === 2) {
+                // Wheels
+                const dW1 = Math.hypot(nx - 0.32, ny - 0.76);
+                const dW2 = Math.hypot(nx - 0.76, ny - 0.76);
+                act = Math.max(0, 1 - Math.min(dW1, dW2) / 0.18);
+              } else {
+                // Road & Sky
+                act = (ny > 0.82 || ny < 0.3) ? 0.85 : 0.05;
+              }
+            } else {
+              // Digit 8
+              if (ch === 0) {
+                // Top loop
+                const d = Math.hypot(nx - 0.5, ny - 0.35);
+                act = Math.max(0, 1 - d / 0.24);
+              } else if (ch === 1) {
+                // Bottom loop
+                const d = Math.hypot(nx - 0.5, ny - 0.65);
+                act = Math.max(0, 1 - d / 0.26);
+              } else if (ch === 2) {
+                // Waist cross
+                const d = Math.hypot(nx - 0.5, ny - 0.5);
+                act = Math.max(0, 1 - d / 0.18);
+              } else {
+                // Black Background
+                act = (nx < 0.15 || nx > 0.85 || ny < 0.15 || ny > 0.85) ? 0.9 : 0.05;
+              }
+            }
+
+            map[y * S + x] = Math.pow(act, 1.8);
+          }
+        }
+        cachedConv5Maps.push(map);
+
+        // Render onto 80x80 canvas
+        const cvs = document.getElementById(`conv5Canvas${ch}`);
+        if (cvs) {
+          const ctx = cvs.getContext('2d');
+          const cW = cvs.width, cH = cvs.height;
+          const imgOut = ctx.createImageData(cW, cH);
+          for (let cy = 0; cy < cH; cy++) {
+            for (let cx = 0; cx < cW; cx++) {
+              const mx = Math.floor((cx / cW) * S);
+              const my = Math.floor((cy / cH) * S);
+              const val = Math.floor(cachedConv5Maps[ch][my * S + mx] * 255);
+              const oIdx = (cy * cW + cx) * 4;
+              imgOut.data[oIdx] = val * 0.9;
+              imgOut.data[oIdx + 1] = val * 0.6;
+              imgOut.data[oIdx + 2] = val * 1.1;
+              imgOut.data[oIdx + 3] = 255;
+            }
+          }
+          ctx.putImageData(imgOut, 0, 0);
+        }
+      }
+    }
+
+    function updateCamDisplay() {
+      const targetClassSelect = document.getElementById('cam-target-class');
+      const targetMode = targetClassSelect ? targetClassSelect.value : 'target_true';
+
+      const cfg = camSampleConfigs[currentCamSample];
+      if (!cfg || cachedConv5Maps.length < 4) return;
+
+      const weights = cfg.weights[targetMode] || cfg.weights.target_true;
+
+      // Update Weight tags in Conv5 cards
+      for (let i = 0; i < 4; i++) {
+        const tag = document.getElementById(`cam-weight-tag-${i}`);
+        if (tag) {
+          const w = weights[i];
+          tag.textContent = (w >= 0 ? '+' : '') + w.toFixed(2);
+          tag.className = 'font-mono font-bold text-[10px] ' + (w > 0 ? 'text-emerald-600' : 'text-rose-500');
+        }
+      }
+
+      // Compute Weighted Sum & ReLU: L = ReLU( \sum_k w_k * A_k )
+      const S = 14;
+      const camGrid = new Float32Array(S * S);
+      let maxVal = 0.0001;
+
+      for (let i = 0; i < S * S; i++) {
+        let sum = 0;
+        for (let k = 0; k < 4; k++) {
+          sum += weights[k] * cachedConv5Maps[k][i];
+        }
+        // ReLU
+        const reluVal = Math.max(0, sum);
+        camGrid[i] = reluVal;
+        if (reluVal > maxVal) maxVal = reluVal;
+      }
+
+      // Normalize to [0, 1]
+      for (let i = 0; i < S * S; i++) {
+        camGrid[i] /= maxVal;
+      }
+
+      // Draw onto camOverlayCanvas (220x220)
+      const overlayCvs = document.getElementById('camOverlayCanvas');
+      if (!overlayCvs || !cachedCamInputData) return;
+      const ctx = overlayCvs.getContext('2d');
+      const oW = overlayCvs.width, oH = overlayCvs.height;
+      const rawW = cachedCamInputData.width, rawH = cachedCamInputData.height;
+      const rawSrc = cachedCamInputData.data;
+
+      const outImg = ctx.createImageData(oW, oH);
+
+      for (let y = 0; y < oH; y++) {
+        for (let x = 0; x < oW; x++) {
+          // Nearest/bilinear sample from 14x14 camGrid
+          const gx = (x / oW) * (S - 1);
+          const gy = (y / oH) * (S - 1);
+          const x0 = Math.floor(gx), y0 = Math.floor(gy);
+          const x1 = Math.min(S - 1, x0 + 1), y1 = Math.min(S - 1, y0 + 1);
+          const fx = gx - x0, fy = gy - y0;
+
+          const top = camGrid[y0 * S + x0] * (1 - fx) + camGrid[y0 * S + x1] * fx;
+          const bot = camGrid[y1 * S + x0] * (1 - fx) + camGrid[y1 * S + x1] * fx;
+          const heatVal = Math.max(0, Math.min(1, top * (1 - fy) + bot * fy));
+
+          // Jet Color Map: 0.0 (Blue) -> 0.25 (Cyan) -> 0.5 (Green) -> 0.75 (Yellow) -> 1.0 (Red)
+          let r = 0, g = 0, b = 0;
+          if (heatVal < 0.25) {
+            const t = heatVal / 0.25;
+            r = 0; g = Math.floor(255 * t); b = 255;
+          } else if (heatVal < 0.5) {
+            const t = (heatVal - 0.25) / 0.25;
+            r = 0; g = 255; b = Math.floor(255 * (1 - t));
+          } else if (heatVal < 0.75) {
+            const t = (heatVal - 0.5) / 0.25;
+            r = Math.floor(255 * t); g = 255; b = 0;
+          } else {
+            const t = (heatVal - 0.75) / 0.25;
+            r = 255; g = Math.floor(255 * (1 - t)); b = 0;
+          }
+
+          // Fetch original image pixel
+          const rx = Math.floor((x / oW) * rawW);
+          const ry = Math.floor((y / oH) * rawH);
+          const rawIdx = (ry * rawW + rx) * 4;
+          const origR = rawSrc[rawIdx];
+          const origG = rawSrc[rawIdx + 1];
+          const origB = rawSrc[rawIdx + 2];
+
+          // Blend with currentCamAlpha
+          const a = currentCamAlpha;
+          const finalR = Math.round(origR * (1 - a) + r * a);
+          const finalG = Math.round(origG * (1 - a) + g * a);
+          const finalB = Math.round(origB * (1 - a) + b * a);
+
+          const outIdx = (y * oW + x) * 4;
+          outImg.data[outIdx] = finalR;
+          outImg.data[outIdx + 1] = finalG;
+          outImg.data[outIdx + 2] = finalB;
+          outImg.data[outIdx + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(outImg, 0, 0);
+    }
+
+    function updateCamAlpha(val) {
+      currentCamAlpha = parseFloat(val) / 100;
+      const label = document.getElementById('cam-alpha-val');
+      if (label) label.textContent = `${Math.round(currentCamAlpha * 100)}%`;
+      updateCamDisplay();
+    }
+
+    // ==========================================
     // INITIALIZATION ON LOAD
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
@@ -2186,6 +3101,7 @@
       initConvolution();
       initFourierCanvas();
       initOptCanvas();
+      initCamSimulator();
       initKgCanvas();
     });
   </script>
